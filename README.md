@@ -28,7 +28,7 @@ To run the script, execute the following command in your terminal:
 node scraper.js
 ```
 
-The script will log in to Glassdoor with your provided credentials, navigate to the interview page of the target company, and start scraping interview experiences. The extracted data will be stored in an array of objects, where each object represents an interview experience with details such as interview title, date, ratings, application details, interview process, and interview questions.
+The script will log in to Glassdoor with your provided credentials, navigate to the interview page of the target company, and start scraping interview experiences. The extracted data will be stored as a JSON file in your current path, where each JSON object represents an interview experience with details such as interview title, date, ratings, application details, interview process, and interview questions.
 
 ### Note: 
 The script uses a Chrome browser with Selenium-Webdriver, so you might see a Chrome window opening during the execution of the script.
