@@ -10,7 +10,7 @@ This is a Node.js script that uses Selenium-Webdriver to scrape interview experi
 ### Installation
 1. Clone the repository to your local machine.
 2. Navigate to the cloned directory in your terminal.
-3. Run npm install to install the required dependencies (`selenium-webdriver` and `selenium-webdriver/chrome`).
+3. Run `npm install` to install the required dependencies (`selenium-webdriver` and `selenium-webdriver/chrome`).
 4. Make sure to set the following environment variables:
    - `GLASSDOOR_EMAIL`: Your Glassdoor email address.
    - `GLASSDOOR_PASSWORD`: Your Glassdoor password.
