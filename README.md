@@ -3,8 +3,7 @@
 This is a Node.js script that uses Selenium-Webdriver to scrape interview experiences from the Glassdoor website for a specific company. The script logs in to Glassdoor with provided credentials, navigates to the interview page of the target company, and extracts interview experiences including interview titles, dates, ratings, application details, interview process, and interview questions. The script also handles pagination and waits for elements to load before proceeding.
 
 ### Disclaimer:
-If Glassdoor contacts me regarding the usage of this script, I will promptly remove it. This script is meant to be used for educational and informational purposes exclusively. By utilizing this script, you acknowledge that you are solely responsible for adhering to all applicable laws, regulations, and terms of use of Glassdoor. The author of this script cannot be held liable for any misuse or legal consequences that may arise from its usage. Furthermore, it's important to note that web scraping might be a violation of the terms of use of certain websites, and your Glassdoor account may be banned as a result.
-
+This script is meant to be used for educational and informational purposes exclusively. By utilizing this script, you acknowledge that you are solely responsible for adhering to all applicable laws, regulations, and terms of use of Glassdoor. The author of this script cannot be held liable for any misuse or legal consequences that may arise from its usage. Furthermore, it's important to note that web scraping might be a violation of the terms of use of certain websites, and your Glassdoor account may be banned as a result. If Glassdoor contacts me regarding the usage of this script, I will promptly remove it.
 
 
 ### Prerequisites
