@@ -132,7 +132,6 @@ async function scrapeInterviewExperiences(driver, interviewPageUrl) {
   }
 
   console.log(interviewExperiences);
-  await driver.sleep(10000);
 
   return interviewExperiences;
 }
