@@ -2,6 +2,13 @@ const {Builder, By, until} = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const fs = require('fs');
 
+// User PARAMS
+const interviewPageUrl = `https://www.glassdoor.com/Interview/Uber-Engineering-Interview-Questions-EI_IE575263.0,4_DEPT1007.htm`;
+const companyName = 'Uber';
+const email = process.env.GLASSDOOR_EMAIL;
+const password = process.env.GLASSDOOR_PASSWORD;
+const MAX_PAGE_SIZE = 100;
+
 // Define constants for CSS selectors
 const BASE_URL = `https://www.glassdoor.com`;
 const LOGIN_URL = `${BASE_URL}/profile/login_input.htm`;
@@ -18,8 +25,6 @@ const INTERVIEW_PROCESS_SELECTOR = By.css('[data-test$="Process"]');
 const INTERVIEW_QUESTIONS_SELECTOR = By.css('[data-test$="Questions"] span');
 const NEXT_PAGE_BUTTON_SELECTOR = By.css('[data-test="pagination-next"]');
 const ACCEPT_COOKIES_BUTTON_SELECTOR = By.id("onetrust-accept-btn-handler");
-
-const MAX_PAGE_SIZE = 100;
 
 // Set up Selenium driver with options
 async function setupDriver() {
@@ -75,6 +80,43 @@ async function login(driver, email, password) {
   await driver.sleep(2000);
 }
 
+async function waitUntilNextPageButtonAppeared(driver) {
+  const timeoutMillis = 5000; // 5 seconds
+  await driver.wait(until.elementLocated(NEXT_PAGE_BUTTON_SELECTOR), timeoutMillis)
+    .catch(async (error) => {
+        console.log(`error occurred :${error}, refreshing page...`);
+        await driver.navigate().refresh();
+        await driver.sleep(timeoutMillis); // Add sleep to allow page to load after refresh
+      }
+    );
+}
+
+async function extractExperience(section) {
+  const title = await section.findElement(INTERVIEW_TITLE_SELECTOR).getText();
+  const date = await section.findElement(INTERVIEW_DATE_SELECTOR).getText();
+  const ratings = await section.findElements(INTERVIEW_RATING_SELECTOR);
+
+  const offer = ratings.length > 0 ? await ratings[0].getText() : '';
+  const experience = ratings.length > 1 ? await ratings[1].getText() : '';
+  const difficulty = ratings.length > 2 ? await ratings[2].getText() : '';
+
+  const applicationDetails = await section.findElement(APPLICATION_DETAILS_SELECTOR).getText();
+  const process = await section.findElement(INTERVIEW_PROCESS_SELECTOR).getText();
+  const questions = await section.findElements(INTERVIEW_QUESTIONS_SELECTOR);
+  const questionList = await Promise.all(questions.map(q => q.getText()));
+
+  return {
+    title,
+    date,
+    offer,
+    experience,
+    difficulty,
+    applicationDetails,
+    process,
+    questions: questionList
+  };
+}
+
 // Scrape interview experiences for a given company
 async function scrapeInterviewExperiences(driver, interviewPageUrl) {
   const interviewExperiences = [];
@@ -82,51 +124,24 @@ async function scrapeInterviewExperiences(driver, interviewPageUrl) {
   await driver.get(interviewPageUrl);
 
   for (let index = 0; index < MAX_PAGE_SIZE; index++) {
-    await driver.sleep(1000);
+    console.log(`page: ${index}`);
+
+    await driver.sleep(2000);
     await driver.wait(until.elementLocated(INTERVIEW_EXPERIENCE_SELECTOR));
     const interviewSections = await driver.findElements(INTERVIEW_EXPERIENCE_SELECTOR);
 
-    if (interviewSections.length < 1) {
-      break;
-    }
-
     for (const section of interviewSections) {
-      try {
-        const title = await section.findElement(INTERVIEW_TITLE_SELECTOR).getText();
-        const date = await section.findElement(INTERVIEW_DATE_SELECTOR).getText();
-        const ratings = await section.findElements(INTERVIEW_RATING_SELECTOR);
-
-        const offer = ratings.length > 0 ? await ratings[0].getText() : '';
-        const experience = ratings.length > 1 ? await ratings[1].getText() : '';
-        const difficulty = ratings.length > 2 ? await ratings[2].getText() : '';
-
-        const applicationDetails = await section.findElement(APPLICATION_DETAILS_SELECTOR).getText();
-        const process = await section.findElement(INTERVIEW_PROCESS_SELECTOR).getText();
-        const questions = await section.findElements(INTERVIEW_QUESTIONS_SELECTOR);
-        const questionList = await Promise.all(questions.map(q => q.getText()));
-
-        interviewExperiences.push({
-          title,
-          date,
-          offer,
-          experience,
-          difficulty,
-          applicationDetails,
-          process,
-          questions: questionList
-        });
-      } catch (err) {
-        console.log(`Error scraping interview experience: ${err}`);
-      }
+      await extractExperience(section)
+        .then(items => interviewExperiences.push(items))
+        .catch(error => console.log(`Error scraping interview experience: ${error}`));
     }
 
-    await driver.wait(until.elementLocated(NEXT_PAGE_BUTTON_SELECTOR));
+    await waitUntilNextPageButtonAppeared(driver);
 
     const nextPage = await driver.findElement(NEXT_PAGE_BUTTON_SELECTOR);
 
-    console.log(`nextPageEnabled: ${await nextPage.isEnabled()}`);
-
-    if (!await nextPage.isEnabled()) break;
+    const hasNextPage = await nextPage.isEnabled();
+    if (!hasNextPage) break;
 
     await nextPage.click();
   }
@@ -136,20 +151,16 @@ async function scrapeInterviewExperiences(driver, interviewPageUrl) {
   return interviewExperiences;
 }
 
-const email = process.env.GLASSDOOR_EMAIL;
-const password = process.env.GLASSDOOR_PASSWORD;
-const interviewPageUrl = `https://www.glassdoor.com/Interview/Spotify-Engineering-Interview-Questions-EI_IE408251.0,7_DEPT1007.htm`;
-const companyName = 'Spotify';
+function writeToJSONFile(interviewExperiences) {
+  fs.writeFileSync(`${companyName}-${new Date().toISOString()}.json`, JSON.stringify(interviewExperiences));
+}
 
 async function run() {
   const driver = await setupDriver();
   await login(driver, email, password);
 
   scrapeInterviewExperiences(driver, interviewPageUrl)
-    .then(interviewExperiences => {
-      let data = JSON.stringify(interviewExperiences);
-      fs.writeFileSync(`${companyName}-${new Date().toISOString()}.json`, data);
-    })
+    .then(interviewExperiences => writeToJSONFile(interviewExperiences))
     .catch(error => console.error(error))
 }
 
