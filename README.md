@@ -20,14 +20,12 @@ You can configure the following parameters in the script to customize your scrap
 
 - `interviewPageUrl`: The URL of the interview page for the target company on Glassdoor.
 - `companyName`: The name of the target company.
-- `email`: Your Glassdoor email address.
-- `password`: Your Glassdoor password.
 - `MAX_PAGE_SIZE`: The maximum number of pages to scrape (default is 100).
 
 To run the script, execute the following command in your terminal:
 
 ```shell
-node glassdoor-scraper.js
+node scraper.js
 ```
 
 The script will log in to Glassdoor with your provided credentials, navigate to the interview page of the target company, and start scraping interview experiences. The extracted data will be stored in an array of objects, where each object represents an interview experience with details such as interview title, date, ratings, application details, interview process, and interview questions.
